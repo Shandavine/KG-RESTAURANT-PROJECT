@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Order Summary - KG Restaurant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background-color: darkcyan;">
+    <div class="container mt-5">
+        <h2 class="text-center text-white">Your Order Summary</h2>
+        <ul class="list-group my-4" id="orderList"></ul>
+
+        <h4 class="text-end text-white">Total: <span id="totalPrice">KES 0</span></h4>
+
+        <div class="text-center">
+            <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
+        </div>
+
+        <div id="confirmationMessage" class="alert alert-info mt-4 text-center d-none">
+            🎉 Thank you for your order! A confirmation has been sent to your email.<br>
+            Please proceed to payment below.<br>
+            Redirecting to homepage in <span id="countdown">30</span> seconds...
+            <div class="mt-3">
+                <button id="mpesaBtn" class="btn btn-primary d-none">Pay Now via M-Pesa</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const orderList = document.getElementById('orderList');
+        const totalPriceSpan = document.getElementById('totalPrice');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const countdownSpan = document.getElementById('countdown');
+        const mpesaBtn = document.getElementById('mpesaBtn');
+
+        const prices = {
+            "Pizza": 300,
+            "Chicken Curry": 250,
+            "Chapati": 30,
+            "Pilau": 150,
+            "Ugali with Kales": 80,
+            "Mandazi": 20,
+            "Smoothie": 120,
+            "Cocktail": 150,
+            "Tea Masala": 40,
+            "Soda": 50
+        };
+
+        let items = JSON.parse(localStorage.getItem('orderItems')) || [];
+
+        function renderItems() {
+            orderList.innerHTML = '';
+            let total = 0;
+
+            if (items.length === 0) {
+                orderList.innerHTML = '<li class="list-group-item text-center">No items selected</li>';
+                totalPriceSpan.textContent = 'KES 0';
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const price = prices[item] || 0;
+                total += price;
+
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    ${item} - KES ${price}
+                    <button class="btn btn-sm btn-danger" onclick="removeItem(${index})">Remove</button>
+                `;
+                orderList.appendChild(li);
+            });
+
+            totalPriceSpan.textContent = `KES ${total}`;
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            localStorage.setItem('orderItems', JSON.stringify(items));
+            renderItems();
+        }
+
+        function placeOrder() {
+            if (items.length === 0) {
+                alert("⚠️ You haven’t selected any items yet!");
+                return;
+            }
+
+            confirmationMessage.classList.remove('d-none');
+            mpesaBtn.classList.remove('d-none');
+            localStorage.removeItem('orderItems');
+
+            let countdown = 30;
+            countdownSpan.textContent = countdown;
+
+            const interval = setInterval(() => {
+                countdown--;
+                countdownSpan.textContent = countdown;
+                if (countdown === 0) {
+                    clearInterval(interval);
+                    window.location.href = "index.html";
+                }
+            }, 1000);
+        }
+
+        mpesaBtn.addEventListener('click', () => {
+            alert("🧾 STK Push sent to your phone via Lipa na M-Pesa (Buy Goods and Services)");
+            // Later: connect this to your Node.js backend using fetch()
+        });
+
+        renderItems();
+    </script>
+
+</body>
+
+</html>
